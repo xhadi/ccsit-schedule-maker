@@ -24,7 +24,7 @@ const App: React.FC = () => {
 
         try {
             const fileName = selectedGender === 'male' ? 'kfu_male_courses.xlsx' : 'kfu_female_courses.xlsx';
-            const response = await fetch(fileName);
+            const response = await fetch(`${import.meta.env.BASE_URL}${fileName}`);
 
             if (!response.ok) {
                 throw new Error(`Could not fetch course file. Status: ${response.status}`);

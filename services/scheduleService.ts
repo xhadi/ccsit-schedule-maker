@@ -1,7 +1,6 @@
 import { Course, Section, ScheduleSlot, Schedule } from '../types';
 import { arabicDayMap } from '../constants';
-
-declare const XLSX: any;
+import * as XLSX from 'xlsx';
 
 export const parseExcelFile = async (arrayBuffer: ArrayBuffer): Promise<Course[]> => {
   try {
