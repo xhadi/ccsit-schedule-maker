@@ -1,0 +1,5 @@
+{
+  "name": "ccsit-schedule-maker",
+  "description": "An application to generate all possible conflict-free course schedules from an Excel file. Users can upload their course list, select desired courses, and filter the generated schedules by day off, instructor, or CRN.",
+  "requestFramePermissions": []
+}
