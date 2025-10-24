@@ -102,12 +102,20 @@ const generateCourseOptions = (course: Course): Section[][] => {
 
     course.sections.forEach(section => {
       if (section.sectionType !== 'نظري' || !/^\d+$/.test(section.sectionId)) return;
-      
+
       const theoreticalId = parseInt(section.sectionId, 10);
-      const practicalId = theoreticalId + 40;
-      const practicalSection = sectionsById[String(practicalId)];
-      
-      if (practicalSection && practicalSection.sectionType === 'عملي') {
+
+      // Most campuses use practical id = theoretical id + 40.
+      // For the female campus the practical id appears to be +20 (e.g., 61 -> 81).
+      // Try the common +40 mapping first, then fall back to +20 if not found.
+      const candidates = [theoreticalId + 40, theoreticalId + 20];
+      let practicalSection: Section | undefined;
+      for (const cid of candidates) {
+        const s = sectionsById[String(cid)];
+        if (s && s.sectionType === 'عملي') { practicalSection = s; break; }
+      }
+
+      if (practicalSection) {
         options.push([section, practicalSection]);
       }
     });
