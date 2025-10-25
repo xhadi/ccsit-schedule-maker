@@ -13,11 +13,6 @@ export const parseExcelFile = async (arrayBuffer: ArrayBuffer): Promise<Course[]
     const courses: { [key: string]: Course } = {};
     
     json.forEach(row => {
-      // Skip rows where status is 'غير متاحه'
-      if (row['حالة الشعبة'] === 'غير متاحه') {
-        return;
-      }
-
       const courseCode = row['رقم المقرر'];
       const courseName = row['اسم المقرر'];
       const creditHours = String(row['ساعات']);
