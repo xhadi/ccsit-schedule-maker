@@ -34,4 +34,4 @@ To run this project locally on your machine:
     npm run dev
     ```
 
-4.  Open [http://localhost:5173](http://localhost:5173) (The URL shown in your terminal) to view it in your browser.
+4.  Open [http://localhost:5173](http://localhost:5173) (The URL shown in your terminal) to view it in your browser).
