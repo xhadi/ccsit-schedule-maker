@@ -16,7 +16,7 @@ const App: React.FC = () => {
     const [error, setError] = useState<string>('');
     const [filters, setFilters] = useState<Filters>({ daysOff: [], instructors: [], crns: [] });
     const [loadingMessage, setLoadingMessage] = useState<string>('');
-    
+
     const handleGenderSelect = async (selectedGender: Gender) => {
         setGender(selectedGender);
         setStep('generating');
@@ -120,8 +120,6 @@ const App: React.FC = () => {
             uniqueCRNs: Array.from(crns).sort()
         };
     }, [schedules]);
-
-    // Removed: useEffect for measuring filter bar height
 
     const reset = () => {
         setStep('gender_select');
