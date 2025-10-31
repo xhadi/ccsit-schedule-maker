@@ -2,6 +2,12 @@
 
 A simple and fast web application that generates all possible course schedules for CCSIT students. Just provide your desired course codes, and the app will find and display all non-conflicting schedules.
 
+## Live Demo
+
+**View the live project here:** **[https://xhadi.github.io/ccsit-schedule-maker/](https://xhadi.github.io/ccsit-schedule-maker/)**
+
+---
+
 ## Features
 
 * **Schedule Generation:** Instantly generates all possible schedule combinations from a list of course codes.
@@ -14,13 +20,13 @@ A simple and fast web application that generates all possible course schedules f
 * **Language:** TypeScript
 * **Styling:** Tailwind CSS
 
-## Getting Started
+## Getting Started (Local Development)
 
 To run this project locally on your machine:
 
 1.  **Clone the repository:**
     ```sh
-    git clone https://github.com/xhadi/ccsit-schedule-maker.git
+    git clone [https://github.com/xhadi/ccsit-schedule-maker.git](https://github.com/xhadi/ccsit-schedule-maker.git)
     cd ccsit-schedule-maker
     ```
 
@@ -34,4 +40,4 @@ To run this project locally on your machine:
     npm run dev
     ```
 
-4.  Open [http://localhost:5173](http://localhost:5173) (The URL shown in your terminal) to view it in your browser).
+4.  Open [http://localhost:5173](http://localhost:5173) (or the URL shown in your terminal) to view it in your browser.
