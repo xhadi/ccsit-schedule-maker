@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Course, Schedule, Gender, Filters } from './types';
-import { parseExcelFile, generateValidSchedules } from './services/scheduleService';
+import { parseCSVFile, generateValidSchedules } from './services/scheduleService';
 import ScheduleViewer from './components/ScheduleViewer';
 import Spinner from './components/Spinner';
-import { daysOfWeek } from './constants';
+import { daysOfWeek, arabicDayMap } from './constants';
 
 type AppStep = 'gender_select' | 'select_courses' | 'generating' | 'results' | 'error';
 
@@ -15,6 +15,8 @@ const App: React.FC = () => {
     const [schedules, setSchedules] = useState<Schedule[]>([]);
     const [error, setError] = useState<string>('');
     const [filters, setFilters] = useState<Filters>({ daysOff: [], instructors: [], crns: [] });
+    const [crnSearch, setCrnSearch] = useState<string>('');
+    const [instructorSearch, setInstructorSearch] = useState<string>('');
     const [loadingMessage, setLoadingMessage] = useState<string>('');
 
     const handleGenderSelect = async (selectedGender: Gender) => {
@@ -23,7 +25,7 @@ const App: React.FC = () => {
         setLoadingMessage(`Loading ${selectedGender} course data...`);
 
         try {
-            const fileName = selectedGender === 'male' ? 'kfu_male_courses.xlsx' : 'kfu_female_courses.xlsx';
+            const fileName = selectedGender === 'male' ? 'ccsit_male_courses.csv' : 'ccsit_female_courses.csv';
             const response = await fetch(`${import.meta.env.BASE_URL}${fileName}`);
 
             if (!response.ok) {
@@ -31,7 +33,7 @@ const App: React.FC = () => {
             }
 
             const arrayBuffer = await response.arrayBuffer();
-            const courses = await parseExcelFile(arrayBuffer);
+            const courses = await parseCSVFile(arrayBuffer);
             
             setAllCourses(courses);
             setStep('select_courses');
@@ -88,13 +90,13 @@ const App: React.FC = () => {
 
     const filteredSchedules = useMemo(() => {
         return schedules.filter(schedule => {
-            const scheduleDays = new Set(schedule.flatMap(s => s.schedule.map(slot => slot.day)));
+            const scheduleDays = new Set(schedule.flatMap(s => s.schedule.map(slot => arabicDayMap[slot.day] || slot.day)));
             const scheduleInstructors = new Set(schedule.map(s => s.instructor));
             const scheduleCRNs = new Set(schedule.map(s => s.crn));
 
             if (filters.daysOff.length > 0) {
-                const hasDayOff = filters.daysOff.every(day => !scheduleDays.has(day.charAt(0).toLowerCase()));
-                if (!hasDayOff) return false;
+                const hasForbiddenDay = filters.daysOff.some(day => scheduleDays.has(day));
+                if (hasForbiddenDay) return false;
             }
             if (filters.instructors.length > 0 && !filters.instructors.some(inst => scheduleInstructors.has(inst))) {
                 return false;
@@ -129,6 +131,8 @@ const App: React.FC = () => {
         setSchedules([]);
         setError('');
         setFilters({ daysOff: [], instructors: [], crns: [] });
+        setCrnSearch('');
+        setInstructorSearch('');
         setLoadingMessage('');
     };
 
@@ -200,8 +204,8 @@ const App: React.FC = () => {
                                 />
                             ))
                         ) : (
-                            <p className="text-center text-gray-600 dark:text-gray-300 mt-8">
-                                No schedules match the current filters.
+                            <p className="text-center text-red-600 dark:text-red-400 font-bold mt-10">
+                                No Schedule Matches Found with Current Filters.
                             </p>
                         )}
                     </div>
@@ -252,42 +256,103 @@ const App: React.FC = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Days Off</label>
-                                            <select 
-                                                multiple 
-                                                value={filters.daysOff} 
-                                                onChange={e => handleFilterChange('daysOff', Array.from(e.target.selectedOptions, option => option.value))} 
-                                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                                            >
+                                            <div className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 h-64 flex flex-col overflow-y-auto">
                                                 {daysOfWeek.map(day => (
-                                                    <option key={day} value={day}>{day}</option>
+                                                    <div key={day} className="flex items-center mb-1">
+                                                        <input
+                                                            type="checkbox"
+                                                            id={`day-${day}`}
+                                                            checked={filters.daysOff.includes(day)}
+                                                            onChange={e => {
+                                                                const newDays = e.target.checked
+                                                                    ? [...filters.daysOff, day]
+                                                                    : filters.daysOff.filter(d => d !== day);
+                                                                handleFilterChange('daysOff', newDays);
+                                                            }}
+                                                            className="mr-2"
+                                                        />
+                                                        <label htmlFor={`day-${day}`} className="text-gray-700 dark:text-gray-300 cursor-pointer">
+                                                            {day}
+                                                        </label>
+                                                    </div>
                                                 ))}
-                                            </select>
+                                            </div>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Instructors</label>
-                                            <select 
-                                                multiple 
-                                                value={filters.instructors} 
-                                                onChange={e => handleFilterChange('instructors', Array.from(e.target.selectedOptions, option => option.value))} 
-                                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                                            >
-                                                {uniqueInstructors.map(inst => (
-                                                    <option key={inst} value={inst}>{inst}</option>
-                                                ))}
-                                            </select>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Instructors (Must Include)</label>
+                                            <div className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 h-64 flex flex-col">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search Instructors..."
+                                                    value={instructorSearch}
+                                                    onChange={e => setInstructorSearch(e.target.value)}
+                                                    className="w-full mb-2 p-1 text-sm border-b border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none"
+                                                />
+                                                <div className="flex-1 overflow-y-auto">
+                                                    {uniqueInstructors
+                                                        .filter(inst => inst.toLowerCase().includes(instructorSearch.toLowerCase()))
+                                                        .map(inst => (
+                                                        <div key={inst} className="flex items-center mb-1">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={`inst-${inst}`}
+                                                                checked={filters.instructors.includes(inst)}
+                                                                onChange={e => {
+                                                                    const newInsts = e.target.checked
+                                                                        ? [...filters.instructors, inst]
+                                                                        : filters.instructors.filter(i => i !== inst);
+                                                                    handleFilterChange('instructors', newInsts);
+                                                                }}
+                                                                className="mr-2"
+                                                            />
+                                                            <label htmlFor={`inst-${inst}`} className="text-gray-700 dark:text-gray-300 truncate cursor-pointer">
+                                                                {inst}
+                                                            </label>
+                                                        </div>
+                                                    ))}
+                                                    {uniqueInstructors.filter(inst => inst.toLowerCase().includes(instructorSearch.toLowerCase())).length === 0 && (
+                                                        <div className="text-gray-500 text-center py-2">No Instructors found</div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CRNs</label>
-                                            <select 
-                                                multiple 
-                                                value={filters.crns} 
-                                                onChange={e => handleFilterChange('crns', Array.from(e.target.selectedOptions, option => option.value))} 
-                                                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                                            >
-                                                {uniqueCRNs.map(crn => (
-                                                    <option key={crn} value={crn}>{crn}</option>
-                                                ))}
-                                            </select>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CRNs (Must Include)</label>
+                                            <div className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 h-64 flex flex-col">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search CRNs..."
+                                                    value={crnSearch}
+                                                    onChange={e => setCrnSearch(e.target.value)}
+                                                    className="w-full mb-2 p-1 text-sm border-b border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none"
+                                                />
+                                                <div className="flex-1 overflow-y-auto">
+                                                    {uniqueCRNs
+                                                        .filter(crn => crn.includes(crnSearch))
+                                                        .map(crn => (
+                                                        <div key={crn} className="flex items-center mb-1">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={`crn-${crn}`}
+                                                                checked={filters.crns.includes(crn)}
+                                                                onChange={e => {
+                                                                    const newCrns = e.target.checked
+                                                                        ? [...filters.crns, crn]
+                                                                        : filters.crns.filter(c => c !== crn);
+                                                                    handleFilterChange('crns', newCrns);
+                                                                }}
+                                                                className="mr-2"
+                                                            />
+                                                            <label htmlFor={`crn-${crn}`} className="text-gray-700 dark:text-gray-300 truncate cursor-pointer">
+                                                                {crn}
+                                                            </label>
+                                                        </div>
+                                                    ))}
+                                                    {uniqueCRNs.filter(crn => crn.includes(crnSearch)).length === 0 && (
+                                                        <div className="text-gray-500 text-center py-2">No CRNs found</div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
