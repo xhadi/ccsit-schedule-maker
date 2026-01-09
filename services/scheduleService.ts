@@ -2,7 +2,7 @@ import { Course, Section, ScheduleSlot, Schedule } from '../types';
 import { arabicDayMap } from '../constants';
 import * as XLSX from 'xlsx';
 
-export const parseExcelFile = async (arrayBuffer: ArrayBuffer): Promise<Course[]> => {
+export const parseCSVFile = async (arrayBuffer: ArrayBuffer): Promise<Course[]> => {
   try {
     const data = new Uint8Array(arrayBuffer);
     const workbook = XLSX.read(data, { type: 'array' });
@@ -13,18 +13,18 @@ export const parseExcelFile = async (arrayBuffer: ArrayBuffer): Promise<Course[]
     const courses: { [key: string]: Course } = {};
     
     json.forEach(row => {
-      const courseCode = row['رقم المقرر'];
-      const courseName = row['اسم المقرر'];
-      const creditHours = String(row['ساعات']);
+      const courseCode = row['Course'];
+      const courseName = row['CourseTitle'];
+      const creditHours = String(row['Hours']);
       
       const crn = String(row['CRN']);
-      const sectionId = String(row['الشعبة']);
-      const sectionType = row['النشاط'];
-      const status = row['حالة الشعبة'];
-      const instructor = row['مدرس المادة'] || "Unknown";
+      const sectionId = String(row['Division']);
+      const sectionType = row['Activity'];
+      const status = row['Availability'];
+      const instructor = row['Teacher'] || "Unknown";
       
-      const days = String(row['الأيام'] || '').split(' ').filter(d => d.trim() !== '');
-      const timeSlot = row['الوقت'];
+      const days = String(row['Days'] || '').split(' ').filter(d => d.trim() !== '');
+      const timeSlot = row['Time'];
       
       if (!courseCode || !crn || !timeSlot) return;
 
