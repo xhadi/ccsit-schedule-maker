@@ -3,6 +3,7 @@ import { Course, Schedule, Gender, Filters } from './types';
 import { parseCSVFile, generateValidSchedules } from './services/scheduleService';
 import ScheduleViewer from './components/ScheduleViewer';
 import Spinner from './components/Spinner';
+import SectionListModal from './components/SectionListModal';
 import { daysOfWeek, arabicDayMap } from './constants';
 
 type AppStep = 'gender_select' | 'select_courses' | 'generating' | 'results' | 'error';
@@ -18,6 +19,7 @@ const App: React.FC = () => {
     const [crnSearch, setCrnSearch] = useState<string>('');
     const [instructorSearch, setInstructorSearch] = useState<string>('');
     const [loadingMessage, setLoadingMessage] = useState<string>('');
+    const [showSectionList, setShowSectionList] = useState<boolean>(false);
 
     const handleGenderSelect = async (selectedGender: Gender) => {
         setGender(selectedGender);
@@ -176,7 +178,23 @@ const App: React.FC = () => {
                                     ))}
                                 </ul>
                             </div>
+                            <div className="mt-3">
+                                <button
+                                    onClick={() => setShowSectionList(true)}
+                                    className="w-full px-4 py-2 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                    View All Sections
+                                </button>
+                            </div>
                         </div>
+                        <SectionListModal 
+                            isOpen={showSectionList} 
+                            onClose={() => setShowSectionList(false)} 
+                            courses={allCourses} 
+                        />
                     </div>
                 );
             case 'generating':
