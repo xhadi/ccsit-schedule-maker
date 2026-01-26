@@ -28,7 +28,7 @@ const App: React.FC = () => {
 
         try {
             const fileName = selectedGender === 'male' ? 'ccsit_male_courses.csv' : 'ccsit_female_courses.csv';
-            const response = await fetch(`${import.meta.env.BASE_URL}${fileName}`);
+            const response = await fetch(`${import.meta.env.BASE_URL}${fileName}?t=${new Date().getTime()}`);
 
             if (!response.ok) {
                 throw new Error(`Could not fetch course file. Status: ${response.status}`);
