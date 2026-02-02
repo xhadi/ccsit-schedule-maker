@@ -1,5 +1,7 @@
 # CCSIT Schedule Maker
 
+![Schedule Update Status](https://github.com/xhadi/ccsit-schedule-maker/actions/workflows/update_schedule.yml/badge.svg)
+
 A simple and fast web application that generates all possible course schedules for CCSIT students. Just provide your desired course codes, and the app will find and display all non-conflicting schedules.
 
 ## Live Demo
@@ -26,7 +28,7 @@ To run this project locally on your machine:
 
 1.  **Clone the repository:**
     ```sh
-    git clone [https://github.com/xhadi/ccsit-schedule-maker.git](https://github.com/xhadi/ccsit-schedule-maker.git)
+    git clone https://github.com/xhadi/ccsit-schedule-maker.git
     cd ccsit-schedule-maker
     ```
 
@@ -41,3 +43,18 @@ To run this project locally on your machine:
     ```
 
 4.  Open [http://localhost:5173](http://localhost:5173) (or the URL shown in your terminal) to view it in your browser.
+
+## Updating Course Data
+
+The application uses course data stored in `public/ccsit_male_courses.csv` and `public/ccsit_female_courses.csv`. To update these with the latest data from KFU:
+
+1.  **Install Python dependencies:**
+    ```sh
+    pip install -r scraper/requirements.txt
+    ```
+
+2.  **Run the scraper:**
+    ```sh
+    python scraper/main.py
+    ```
+    This script fetches the latest study schedules and updates the CSV files in the `public` folder.
