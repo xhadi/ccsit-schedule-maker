@@ -12,7 +12,7 @@ A simple and fast web application that generates all possible course schedules f
 
 ## Features
 
-* **Schedule Generation:** Instantly generates all possible schedule combinations from a list of course codes.
+* **Smart Course Input:** Enter course codes one at a time by pressing Enter. The app validates each code instantly, shows a visual list of selected courses with easy removal, and handles duplicates and errors gracefully.
 * **Organized Display:** Shows generated schedules in a clean, easy-to-read table format.
 * **Day-Off Filter:** Easily filter schedules to find ones that have specific days off (e.g., "no classes on Thursday").
 
@@ -55,6 +55,6 @@ The application uses course data stored in `public/ccsit_male_courses.csv` and `
 
 2.  **Run the scraper:**
     ```sh
-    python scraper/main.py
+    python scraper/scrap.py
     ```
     This script fetches the latest study schedules and updates the CSV files in the `public` folder.
