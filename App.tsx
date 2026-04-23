@@ -12,7 +12,10 @@ const App: React.FC = () => {
     const [step, setStep] = useState<AppStep>('gender_select');
     const [gender, setGender] = useState<Gender | null>(null);
     const [allCourses, setAllCourses] = useState<Course[]>([]);
-    const [selectedCourseCodes, setSelectedCourseCodes] = useState<string>('');
+    const [selectedCourseCodes, setSelectedCourseCodes] = useState<string[]>([]);
+    const [courseInputValue, setCourseInputValue] = useState('');
+    const [courseInputError, setCourseInputError] = useState('');
+    const [courseInputSuccess, setCourseInputSuccess] = useState(false);
     const [schedules, setSchedules] = useState<Schedule[]>([]);
     const [error, setError] = useState<string>('');
     const [filters, setFilters] = useState<Filters>({ daysOff: [], instructors: [], crns: [] });
@@ -55,7 +58,7 @@ const App: React.FC = () => {
     }, []);
 
     const handleGenerateSchedules = () => {
-        const codes = selectedCourseCodes.split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
+        const codes = selectedCourseCodes.map(c => c.toUpperCase());
         if (codes.length === 0) {
             setError('Please enter at least one course code.');
             return;
@@ -88,6 +91,34 @@ const App: React.FC = () => {
                 setLoadingMessage('');
             }
         }, 100);
+    };
+
+    const handleCourseInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const code = courseInputValue.trim().toUpperCase();
+        if (!code) return;
+
+        const normalized = allCourses.find(c => c.courseCode.toUpperCase() === code);
+        if (!normalized) {
+            setCourseInputError(`Course ${code} not found`);
+            setTimeout(() => setCourseInputError(''), 3000);
+            return;
+        }
+        if (selectedCourseCodes.includes(code)) {
+            setCourseInputError(`Course ${code} is already in your list`);
+            setTimeout(() => setCourseInputError(''), 3000);
+            setCourseInputValue('');
+            return;
+        }
+        setSelectedCourseCodes(prev => [...prev, code]);
+        setCourseInputValue('');
+        setCourseInputSuccess(true);
+        setTimeout(() => setCourseInputSuccess(false), 500);
+    };
+
+    const removeCourse = (code: string) => {
+        setSelectedCourseCodes(prev => prev.filter(c => c !== code));
     };
 
     const filteredSchedules = useMemo(() => {
@@ -129,13 +160,17 @@ const App: React.FC = () => {
         setStep('gender_select');
         setGender(null);
         setAllCourses([]);
-        setSelectedCourseCodes('');
+        setSelectedCourseCodes([]);
+        setSelectedCourseCodes([]);
         setSchedules([]);
         setError('');
         setFilters({ daysOff: [], instructors: [], crns: [] });
         setCrnSearch('');
         setInstructorSearch('');
         setLoadingMessage('');
+        setCourseInputValue('');
+        setCourseInputError('');
+        setCourseInputSuccess(false);
     };
 
     const renderContent = () => {
@@ -154,18 +189,46 @@ const App: React.FC = () => {
                 return (
                     <div>
                         <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Select Your Courses</h2>
-                        <p className="text-gray-600 dark:text-gray-300 mb-6">Enter course codes separated by commas (e.g., 0901-204, 0911-221).</p>
                         {error && <p className="text-red-500 mb-4">{error}</p>}
-                        <textarea
-                            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
-                            rows={3}
-                            placeholder="Enter course codes..."
-                            value={selectedCourseCodes}
-                            onChange={(e) => setSelectedCourseCodes(e.target.value)}
+                        <input
+                            type="text"
+                            className={`w-full p-3 border rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 transition-colors ${courseInputSuccess ? 'border-green-500 ring-green-500' : 'border-gray-300 dark:border-gray-600'}`}
+                            placeholder="Enter course code and press Enter (e.g. 0901-204)"
+                            value={courseInputValue}
+                            onChange={(e) => setCourseInputValue(e.target.value)}
+                            onKeyDown={handleCourseInputKeyDown}
                         />
+                        {courseInputError && (
+                            <p className="text-red-500 text-sm mt-2">{courseInputError}</p>
+                        )}
+                        <div className="mt-4 min-h-[80px] max-h-[200px] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gray-50 dark:bg-gray-800">
+                            {selectedCourseCodes.length === 0 ? (
+                                <p className="text-gray-400 dark:text-gray-500 text-sm text-center">No courses selected yet</p>
+                            ) : (
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedCourseCodes.map(code => {
+                                        const course = allCourses.find(c => c.courseCode === code);
+                                        return (
+                                            <span key={code} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm">
+                                                <span className="font-semibold">{code}</span>
+                                                <span className="text-xs text-blue-600 dark:text-blue-300 truncate max-w-[200px]">- {course?.courseName || ''}</span>
+                                                <button
+                                                    onClick={() => removeCourse(code)}
+                                                    className="ml-1 text-blue-600 dark:text-blue-300 hover:text-red-500 font-bold"
+                                                    aria-label={`Remove ${code}`}
+                                                >
+                                                    ×
+                                                </button>
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
                         <button 
                             onClick={handleGenerateSchedules} 
-                            className="mt-4 w-full px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+                            disabled={selectedCourseCodes.length === 0}
+                            className={`mt-4 w-full px-6 py-3 font-bold rounded-lg transition-colors flex items-center justify-center ${selectedCourseCodes.length === 0 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                         >
                             Generate Schedules
                         </button>
