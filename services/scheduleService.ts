@@ -38,22 +38,20 @@ export const parseCSVFile = async (arrayBuffer: ArrayBuffer): Promise<Course[]> 
       }
       const course = courses[courseCode];
 
-      let section = course.sections.find(s => s.crn === crn && s.sectionId === sectionId);
-      if (!section) {
-        section = {
-          crn,
-          sectionId,
-          sectionType,
-          status,
-          instructor,
-          schedule: [],
-          course,
-        };
-        course.sections.push(section);
-      }
-      
+      // Create a separate Section object for each row in the CSV
+      const section: Section = {
+        crn,
+        sectionId,
+        sectionType,
+        status,
+        instructor,
+        schedule: [],
+        course,
+      };
+      course.sections.push(section);
+
       days.forEach(day => {
-        if (day && !section.schedule.some(s => s.day === day && s.time === timeSlot)) {
+        if (day) {
           section.schedule.push({ day, time: timeSlot });
         }
       });

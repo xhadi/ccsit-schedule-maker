@@ -75,16 +75,9 @@ const SectionListModal: React.FC<SectionListModalProps> = ({ isOpen, onClose, co
                                         </td>
                                     </tr>
                                     {sections.map((section, idx) => {
-                                        // Group days by time
-                                        const timeMap: { [time: string]: string[] } = {};
-                                        section.schedule.forEach(s => {
-                                            if (!timeMap[s.time]) timeMap[s.time] = [];
-                                            if (!timeMap[s.time].includes(s.day)) timeMap[s.time].push(s.day);
-                                        });
-                                        const scheduleStrings = Object.entries(timeMap).map(([time, days]) => ({
-                                            days: days.join(' '),
-                                            time
-                                        }));
+                                        // Extract unique days and times
+                                        const uniqueDays = Array.from(new Set(section.schedule.map(s => s.day))).join(' ');
+                                        const uniqueTimes = Array.from(new Set(section.schedule.map(s => s.time))).join(' ');
                                         
                                         return (
                                             <tr key={`${dept}-${idx}`} className="hover:bg-gray-50 dark:hover:bg-gray-600">
@@ -94,12 +87,8 @@ const SectionListModal: React.FC<SectionListModalProps> = ({ isOpen, onClose, co
                                                 <td className={`px-4 py-2 border dark:border-gray-600 font-semibold ${section.status === 'متاحه' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                                                     {section.status}
                                                 </td>
-                                                <td className="px-4 py-2 border dark:border-gray-600">
-                                                    {scheduleStrings.map((s, i) => <div key={i}>{s.days}</div>)}
-                                                </td>
-                                                <td className="px-4 py-2 border dark:border-gray-600">
-                                                    {scheduleStrings.map((s, i) => <div key={i}>{s.time}</div>)}
-                                                </td>
+                                                <td className="px-4 py-2 border dark:border-gray-600">{uniqueDays}</td>
+                                                <td className="px-4 py-2 border dark:border-gray-600">{uniqueTimes}</td>
                                                 <td className="px-4 py-2 border dark:border-gray-600">{section.course.courseName}</td>
                                                 <td className="px-4 py-2 border dark:border-gray-600">{section.course.creditHours}</td>
                                                 <td className="px-4 py-2 border dark:border-gray-600">{section.sectionType}</td>
