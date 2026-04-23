@@ -27,6 +27,10 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r scraper/requirements.txt
+<<<<<<< HEAD
+          playwright install chromium --with-deps
+=======
+>>>>>>> b2b9606eb5aed58d5fd0fe66172925adc0aeb8aa
 
       - name: Run Scraper
         run: python scraper/scrap.py

@@ -1,12 +1,18 @@
 from bs4 import BeautifulSoup
 import pandas as pd
+<<<<<<< HEAD
+from playwright.sync_api import sync_playwright
+=======
 import requests
+>>>>>>> b2b9606eb5aed58d5fd0fe66172925adc0aeb8aa
 import os
 import time
 
 TERM_CODE = "144810"
 BASE_URL = "https://ssb-ar.kfu.edu.sa/PROD_ar/ws"
 
+<<<<<<< HEAD
+=======
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -14,6 +20,7 @@ HEADERS = {
     "Referer": "https://ssb-ar.kfu.edu.sa/",
 }
 
+>>>>>>> b2b9606eb5aed58d5fd0fe66172925adc0aeb8aa
 COL_CODE = "09"
 
 CSV_COLUMNS = [
@@ -31,6 +38,19 @@ CSV_COLUMNS = [
 
 
 def fetch_html(sex_code: str) -> str:
+<<<<<<< HEAD
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(
+            f"{BASE_URL}?p_trm_code={TERM_CODE}&p_col_code={COL_CODE}&p_sex_code={sex_code}",
+            wait_until="networkidle",
+            timeout=60000,
+        )
+        html = page.content()
+        browser.close()
+    return html
+=======
     session = requests.Session()
     params = {
         "p_trm_code": TERM_CODE,
@@ -43,6 +63,7 @@ def fetch_html(sex_code: str) -> str:
         return response.text
     finally:
         session.close()
+>>>>>>> b2b9606eb5aed58d5fd0fe66172925adc0aeb8aa
 
 
 def parse_courses(html: str) -> list[dict]:
