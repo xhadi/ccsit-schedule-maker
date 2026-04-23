@@ -22,19 +22,34 @@ CSV_COLUMNS = [
     "Teacher",
 ]
 
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
 
 def fetch_html(sex_code: str) -> str:
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto(
-            f"{BASE_URL}?p_trm_code={TERM_CODE}&p_col_code={COL_CODE}&p_sex_code={sex_code}",
-            wait_until="networkidle",
-            timeout=60000,
-        )
-        html = page.content()
-        browser.close()
-    return html
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                context = browser.new_context(user_agent=USER_AGENT)
+                page = context.new_page()
+                page.add_init_script("""
+                    Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+                """)
+                page.goto(
+                    f"{BASE_URL}?p_trm_code={TERM_CODE}&p_col_code={COL_CODE}&p_sex_code={sex_code}",
+                    wait_until="networkidle",
+                    timeout=60000,
+                )
+                html = page.content()
+                browser.close()
+            return html
+        except Exception as e:
+            if attempt < max_retries - 1:
+                print(f"Attempt {attempt + 1} failed: {e}, retrying...")
+                time.sleep(5 * (attempt + 1))
+            else:
+                raise e
 
 
 def parse_courses(html: str) -> list[dict]:
