@@ -27,9 +27,10 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r scraper/requirements.txt
+          playwright install chromium --with-deps
 
       - name: Run Scraper
-        run: python scraper/main.py
+        run: python scraper/scrap.py
 
       - name: Commit and Push if Changed
         run: |
