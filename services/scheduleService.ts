@@ -53,7 +53,7 @@ export const parseCSVFile = async (arrayBuffer: ArrayBuffer): Promise<Course[]> 
       }
       
       days.forEach(day => {
-        if (day) {
+        if (day && !section.schedule.some(s => s.day === day && s.time === timeSlot)) {
           section.schedule.push({ day, time: timeSlot });
         }
       });
