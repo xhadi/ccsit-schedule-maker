@@ -84,7 +84,7 @@ const SectionListModal: React.FC<SectionListModalProps> = ({ isOpen, onClose, co
                                                 <td className="px-4 py-2 border dark:border-gray-600">{section.course.courseCode}</td>
                                                 <td className="px-4 py-2 border dark:border-gray-600">{section.crn}</td>
                                                 <td className="px-4 py-2 border dark:border-gray-600">{section.sectionId}</td>
-                                                <td className={`px-4 py-2 border dark:border-gray-600 font-semibold ${section.status === 'متاحة' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                                <td className={`px-4 py-2 border dark:border-gray-600 font-semibold ${section.status === 'متاحه' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                                                     {section.status}
                                                 </td>
                                                 <td className="px-4 py-2 border dark:border-gray-600">{uniqueDays}</td>
