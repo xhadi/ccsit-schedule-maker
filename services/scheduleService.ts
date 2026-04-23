@@ -23,7 +23,7 @@ export const parseCSVFile = async (arrayBuffer: ArrayBuffer): Promise<Course[]> 
       const status = row['Availability'];
       const instructor = row['Teacher'] || "Unknown";
       
-      const day = String(row['Days'] || '').trim();
+      const days = String(row['Days'] || '').split(/\s+/).filter(d => d.trim() !== '');
       const timeSlot = row['Time'];
       
       if (!courseCode || !crn || !timeSlot) return;
@@ -52,9 +52,11 @@ export const parseCSVFile = async (arrayBuffer: ArrayBuffer): Promise<Course[]> 
         course.sections.push(section);
       }
       
-      if (day) {
-        section.schedule.push({ day, time: timeSlot });
-      }
+      days.forEach(day => {
+        if (day) {
+          section.schedule.push({ day, time: timeSlot });
+        }
+      });
     });
     
     return Object.values(courses);
