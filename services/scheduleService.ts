@@ -37,22 +37,26 @@ export const parseCSVFile = async (arrayBuffer: ArrayBuffer): Promise<Course[]> 
         };
       }
       const course = courses[courseCode];
-
-      // Create a separate Section object for each row in the CSV
-      const section: Section = {
-        crn,
-        sectionId,
-        sectionType,
-        status,
-        instructor,
-        schedule: [],
-        course,
-      };
-      course.sections.push(section);
-
+      
+      // Find existing section with same CRN, or create new one
+      let section = course.sections.find(s => s.crn === crn);
+      if (!section) {
+        section = {
+          crn,
+          sectionId,
+          sectionType,
+          status,
+          instructor,
+          schedule: [],
+          course,
+        };
+        course.sections.push(section);
+      }
+      
+      // Merge days into existing section's schedule
       days.forEach(day => {
-        if (day) {
-          section.schedule.push({ day, time: timeSlot });
+        if (day && !section!.schedule.some(s => s.day === day && s.time === timeSlot)) {
+          section!.schedule.push({ day, time: timeSlot });
         }
       });
     });
