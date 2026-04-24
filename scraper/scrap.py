@@ -35,8 +35,8 @@ def fetch_html(sex_code: str) -> str:
     
     if SCRAPERAPI_KEY:
         proxies = {
-            "http": f"http://scraperapi.country_code=sa:{SCRAPERAPI_KEY}@proxy-server.scraperapi.com:8001",
-            "https": f"http://scraperapi.country_code=sa:{SCRAPERAPI_KEY}@proxy-server.scraperapi.com:8001",
+            "http": f"http://scraperapi.render=true.country_code=sa:{SCRAPERAPI_KEY}@proxy-server.scraperapi.com:8001",
+            "https": f"http://scraperapi.render=true.country_code=sa:{SCRAPERAPI_KEY}@proxy-server.scraperapi.com:8001",
         }
     else:
         proxies = None
