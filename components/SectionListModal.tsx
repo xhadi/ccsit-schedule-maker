@@ -74,24 +74,29 @@ const SectionListModal: React.FC<SectionListModalProps> = ({ isOpen, onClose, co
                                             القسم: {dept}
                                         </td>
                                     </tr>
-                                    {sections.flatMap((section, idx) => 
-                                        section.schedule.map((slot, slotIdx) => (
-                                            <tr key={`${dept}-${idx}-${slotIdx}`} className="hover:bg-gray-50 dark:hover:bg-gray-600">
+                                    {sections.flatMap((section, idx) => {
+                                        const byTime: { [time: string]: string[] } = {};
+                                        section.schedule.forEach(slot => {
+                                            if (!byTime[slot.time]) byTime[slot.time] = [];
+                                            byTime[slot.time].push(slot.day);
+                                        });
+                                        return Object.entries(byTime).map(([time, days], timeIdx) => (
+                                            <tr key={`${dept}-${idx}-${timeIdx}`} className="hover:bg-gray-50 dark:hover:bg-gray-600">
                                                 <td className="px-4 py-2 border dark:border-gray-600">{section.course.courseCode}</td>
                                                 <td className="px-4 py-2 border dark:border-gray-600">{section.crn}</td>
                                                 <td className="px-4 py-2 border dark:border-gray-600">{section.sectionId}</td>
                                                 <td className={`px-4 py-2 border dark:border-gray-600 font-semibold ${section.status === 'متاحه' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                                                     {section.status}
                                                 </td>
-                                                <td className="px-4 py-2 border dark:border-gray-600">{slot.day}</td>
-                                                <td className="px-4 py-2 border dark:border-gray-600">{slot.time}</td>
+                                                <td className="px-4 py-2 border dark:border-gray-600">{days.join(' ')}</td>
+                                                <td className="px-4 py-2 border dark:border-gray-600">{time}</td>
                                                 <td className="px-4 py-2 border dark:border-gray-600">{section.course.courseName}</td>
                                                 <td className="px-4 py-2 border dark:border-gray-600">{section.course.creditHours}</td>
                                                 <td className="px-4 py-2 border dark:border-gray-600">{section.sectionType}</td>
                                                 <td className="px-4 py-2 border dark:border-gray-600">{section.instructor}</td>
                                             </tr>
-                                        ))
-                                    )}
+                                        ));
+                                    })}
                                 </React.Fragment>
                             ))}
                         </tbody>
