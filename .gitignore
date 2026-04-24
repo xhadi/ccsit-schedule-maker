@@ -26,3 +26,8 @@ dist-ssr
 # Local docs and agents
 docs/
 AGENTS.md
+
+# Secrets
+*.env
+!.env.example
+scraper/*.env
