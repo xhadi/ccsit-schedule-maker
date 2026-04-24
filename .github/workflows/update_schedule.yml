@@ -2,8 +2,8 @@ name: Update Course Schedule
 
 on:
   schedule:
-    # Runs every 2 hours (adjust as needed)
-    - cron: "0 */2 * * *"
+    # Runs every 8 hours (adjust as needed)
+    - cron: "0 */8 * * *"
   workflow_dispatch: # Allows manual trigger button
 
 permissions:
