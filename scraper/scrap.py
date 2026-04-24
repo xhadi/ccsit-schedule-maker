@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import pandas as pd
-from playwright.sync_api import sync_playwright
+import requests
 import os
 import time
 from dotenv import load_dotenv
@@ -28,31 +28,30 @@ CSV_COLUMNS = [
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
 SCRAPERAPI_KEY = os.environ.get("SCRAPERAPI_KEY", "")
-SCRAPERAPI_PROXY = f"http://scraperapi.country_code=sa:{SCRAPERAPI_KEY}@proxy-server.scraperapi.com:8001"
 
 
 def fetch_html(sex_code: str) -> str:
+    url = f"{BASE_URL}?p_trm_code={TERM_CODE}&p_col_code={COL_CODE}&p_sex_code={sex_code}"
+    
+    if SCRAPERAPI_KEY:
+        proxies = {
+            "http": f"http://scraperapi.country_code=sa:{SCRAPERAPI_KEY}@proxy-server.scraperapi.com:8001",
+            "https": f"http://scraperapi.country_code=sa:{SCRAPERAPI_KEY}@proxy-server.scraperapi.com:8001",
+        }
+    else:
+        proxies = None
+    
     max_retries = 3
     for attempt in range(max_retries):
         try:
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                context = browser.new_context(
-                    user_agent=USER_AGENT,
-                    proxy={"server": SCRAPERAPI_PROXY} if SCRAPERAPI_KEY else None,
-                )
-                page = context.new_page()
-                page.add_init_script("""
-                    Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-                """)
-                page.goto(
-                    f"{BASE_URL}?p_trm_code={TERM_CODE}&p_col_code={COL_CODE}&p_sex_code={sex_code}",
-                    wait_until="networkidle",
-                    timeout=90000,
-                )
-                html = page.content()
-                browser.close()
-            return html
+            response = requests.get(
+                url,
+                headers={"User-Agent": USER_AGENT},
+                proxies=proxies,
+                timeout=90,
+            )
+            response.raise_for_status()
+            return response.text
         except Exception as e:
             if attempt < max_retries - 1:
                 print(f"Attempt {attempt + 1} failed: {e}, retrying...")
