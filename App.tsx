@@ -4,6 +4,7 @@ import { parseCSVFile, generateValidSchedules } from './services/scheduleService
 import ScheduleViewer from './components/ScheduleViewer';
 import Spinner from './components/Spinner';
 import SectionListModal from './components/SectionListModal';
+import CourseAutocomplete from './components/CourseAutocomplete';
 import { daysOfWeek, arabicDayMap } from './constants';
 
 type AppStep = 'gender_select' | 'select_courses' | 'generating' | 'results' | 'error';
@@ -131,11 +132,13 @@ const App: React.FC = () => {
                 const hasForbiddenDay = filters.daysOff.some(day => scheduleDays.has(day));
                 if (hasForbiddenDay) return false;
             }
-            if (filters.instructors.length > 0 && !filters.instructors.some(inst => scheduleInstructors.has(inst))) {
-                return false;
+            if (filters.instructors.length > 0) {
+                const hasAllInstructors = filters.instructors.every(inst => scheduleInstructors.has(inst));
+                if (!hasAllInstructors) return false;
             }
-            if (filters.crns.length > 0 && !filters.crns.some(crn => scheduleCRNs.has(crn))) {
-                return false;
+            if (filters.crns.length > 0) {
+                const hasAllCRNs = filters.crns.every(crn => scheduleCRNs.has(crn));
+                if (!hasAllCRNs) return false;
             }
             return true;
         });
@@ -190,41 +193,16 @@ const App: React.FC = () => {
                     <div>
                         <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Select Your Courses</h2>
                         {error && <p className="text-red-500 mb-4">{error}</p>}
-                        <input
-                            type="text"
-                            className={`w-full p-3 border rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 transition-colors ${courseInputSuccess ? 'border-green-500 ring-green-500' : 'border-gray-300 dark:border-gray-600'}`}
-                            placeholder="Enter course code and press Enter (e.g. 0901-204)"
-                            value={courseInputValue}
-                            onChange={(e) => setCourseInputValue(e.target.value)}
-                            onKeyDown={handleCourseInputKeyDown}
+                        <CourseAutocomplete
+                            courses={allCourses}
+                            selectedCourses={selectedCourseCodes}
+                            onSelect={(code) => {
+                                if (!selectedCourseCodes.includes(code)) {
+                                    setSelectedCourseCodes(prev => [...prev, code]);
+                                }
+                            }}
+                            onRemove={removeCourse}
                         />
-                        {courseInputError && (
-                            <p className="text-red-500 text-sm mt-2">{courseInputError}</p>
-                        )}
-                        <div className="mt-4 min-h-[80px] max-h-[200px] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gray-50 dark:bg-gray-800">
-                            {selectedCourseCodes.length === 0 ? (
-                                <p className="text-gray-400 dark:text-gray-500 text-sm text-center">No courses selected yet</p>
-                            ) : (
-                                <div className="flex flex-wrap gap-2">
-                                    {selectedCourseCodes.map(code => {
-                                        const course = allCourses.find(c => c.courseCode === code);
-                                        return (
-                                            <span key={code} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm">
-                                                <span className="font-semibold">{code}</span>
-                                                <span className="text-xs text-blue-600 dark:text-blue-300 truncate max-w-[200px]">- {course?.courseName || ''}</span>
-                                                <button
-                                                    onClick={() => removeCourse(code)}
-                                                    className="ml-1 text-blue-600 dark:text-blue-300 hover:text-red-500 font-bold"
-                                                    aria-label={`Remove ${code}`}
-                                                >
-                                                    ×
-                                                </button>
-                                            </span>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
                         <button 
                             onClick={handleGenerateSchedules} 
                             disabled={selectedCourseCodes.length === 0}
@@ -285,9 +263,31 @@ const App: React.FC = () => {
                                 />
                             ))
                         ) : (
-                            <p className="text-center text-red-600 dark:text-red-400 font-bold mt-10">
-                                No Schedule Matches Found with Current Filters.
-                            </p>
+                            <div className="text-center py-8">
+                                <p className="text-red-600 dark:text-red-400 font-bold text-lg mb-2">
+                                    No Schedule Matches Found with Current Filters.
+                                </p>
+                                {(filters.daysOff.length > 0 || filters.instructors.length > 0 || filters.crns.length > 0) && (
+                                    <div className="text-gray-600 dark:text-gray-400 text-sm mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg inline-block text-left">
+                                        <p className="font-semibold mb-2">Active filters:</p>
+                                        {filters.daysOff.length > 0 && (
+                                            <p>Days off: {filters.daysOff.join(', ')}</p>
+                                        )}
+                                        {filters.instructors.length > 0 && (
+                                            <p>Instructors: {filters.instructors.join(', ')}</p>
+                                        )}
+                                        {filters.crns.length > 0 && (
+                                            <p>CRNs: {filters.crns.join(', ')}</p>
+                                        )}
+                                        <button 
+                                            onClick={clearFilters} 
+                                            className="mt-3 text-blue-600 dark:text-blue-400 hover:underline text-sm"
+                                        >
+                                            Clear all filters
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
                 );
@@ -360,7 +360,7 @@ const App: React.FC = () => {
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Instructors (Must Include)</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Instructors (Must Include All)</label>
                                             <div className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 h-64 flex flex-col">
                                                 <input
                                                     type="text"
@@ -398,7 +398,7 @@ const App: React.FC = () => {
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CRNs (Must Include)</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CRNs (Must Include All)</label>
                                             <div className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 h-64 flex flex-col">
                                                 <input
                                                     type="text"
