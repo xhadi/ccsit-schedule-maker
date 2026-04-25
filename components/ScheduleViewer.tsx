@@ -35,7 +35,7 @@ const parseStartTime = (timeStr: string): number => {
 const ScheduleViewer: React.FC<ScheduleViewerProps> = ({ schedule, scheduleId }) => {
   const { timeSlots, scheduleData, crns } = useMemo(() => {
     const slots = new Map<string, number>();
-    const data: { [day: string]: { [time: string]: any[] } } = {};
+    const data: { [day: string]: { [time: string]: { code: string; name: string; sectionId: string; type: string; instructor: string; crn: string; status: string }[] } } = {};
     daysOfWeek.forEach(day => data[day] = {});
 
     const scheduleCrns = schedule.map(section => section.crn).sort();
@@ -54,6 +54,7 @@ const ScheduleViewer: React.FC<ScheduleViewerProps> = ({ schedule, scheduleId })
             type: section.sectionType,
             instructor: section.instructor,
             crn: section.crn,
+            status: section.status,
           });
           if (!slots.has(slot.time)) {
               slots.set(slot.time, parseStartTime(slot.time));
@@ -96,12 +97,13 @@ const ScheduleViewer: React.FC<ScheduleViewerProps> = ({ schedule, scheduleId })
                 {daysOfWeek.map(day => (
                   <td key={day} className="px-2 py-2 align-top">
                     {scheduleData[day][time]?.map((course, index) => (
-                      <div key={index} className="bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 p-2 rounded-md mb-2 shadow-sm text-xs">
+                      <div key={index} className={`p-2 rounded-md mb-2 shadow-sm text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 border-l-4 ${course.status === 'متاحه' ? 'border-green-500' : 'border-red-500'}`}>
                         <p className="font-bold">{course.code} ({course.sectionId})</p>
                         <p>{course.name}</p>
                         <p className="italic text-gray-600 dark:text-gray-400">{course.type}</p>
                         <p><strong>CRN:</strong> {course.crn}</p>
                         <p><strong>Instr:</strong> {course.instructor}</p>
+                        <p><strong>Status:</strong> {course.status}</p>
                       </div>
                     ))}
                   </td>
