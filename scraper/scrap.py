@@ -85,21 +85,19 @@ def save_csv(courses: list[dict], filename: str):
         return
 
     filepath = os.path.join("public", filename)
+    new_csv = pd.DataFrame(courses)[CSV_COLUMNS].to_csv(index=False, encoding="utf-8-sig")
 
     if os.path.exists(filepath):
-        existing_df = pd.read_csv(filepath, encoding="utf-8-sig")
-        new_df = pd.DataFrame(courses)[CSV_COLUMNS]
-        if existing_df.equals(new_df):
+        existing_csv = pd.read_csv(filepath, encoding="utf-8-sig").to_csv(index=False, encoding="utf-8-sig")
+        if existing_csv == new_csv:
             print(f"No changes for {filename}, skipping save.")
             return
 
     if not os.path.exists("public"):
         os.makedirs("public")
 
-    df = pd.DataFrame(courses)
-    df = df[CSV_COLUMNS]
-    df.to_csv(filepath, index=False, encoding="utf-8-sig")
-    print(f"Saved: {filepath} ({len(df)} rows)")
+    pd.DataFrame(courses)[CSV_COLUMNS].to_csv(filepath, index=False, encoding="utf-8-sig")
+    print(f"Saved: {filepath} ({len(courses)} rows)")
 
 
 def main():
