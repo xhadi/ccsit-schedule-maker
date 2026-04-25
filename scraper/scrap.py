@@ -3,14 +3,6 @@ import pandas as pd
 import requests
 import os
 import time
-from dotenv import load_dotenv
-
-load_dotenv()
-
-TERM_CODE = "144810"
-BASE_URL = "https://ssb-ar.kfu.edu.sa/PROD_ar/ws"
-
-COL_CODE = "09"
 
 CSV_COLUMNS = [
     "Course",
@@ -27,19 +19,13 @@ CSV_COLUMNS = [
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
-SCRAPERAPI_KEY = os.environ.get("SCRAPERAPI_KEY", "")
+TERM_CODE = "144810"
+BASE_URL = "https://ssb-ar.kfu.edu.sa/PROD_ar/ws"
+COL_CODE = "09"
 
 
 def fetch_html(sex_code: str) -> str:
     url = f"{BASE_URL}?p_trm_code={TERM_CODE}&p_col_code={COL_CODE}&p_sex_code={sex_code}"
-    
-    if SCRAPERAPI_KEY:
-        proxies = {
-            "http": f"http://scraperapi.render=true.country_code=sa:{SCRAPERAPI_KEY}@proxy-server.scraperapi.com:8001",
-            "https": f"http://scraperapi.render=true.country_code=sa:{SCRAPERAPI_KEY}@proxy-server.scraperapi.com:8001",
-        }
-    else:
-        proxies = None
     
     max_retries = 3
     for attempt in range(max_retries):
@@ -47,7 +33,6 @@ def fetch_html(sex_code: str) -> str:
             response = requests.get(
                 url,
                 headers={"User-Agent": USER_AGENT},
-                proxies=proxies,
                 timeout=90,
             )
             response.raise_for_status()
@@ -99,12 +84,20 @@ def save_csv(courses: list[dict], filename: str):
         print(f"No data found for {filename}, skipping.")
         return
 
+    filepath = os.path.join("public", filename)
+
+    if os.path.exists(filepath):
+        existing_df = pd.read_csv(filepath, encoding="utf-8-sig")
+        new_df = pd.DataFrame(courses)[CSV_COLUMNS]
+        if existing_df.equals(new_df):
+            print(f"No changes for {filename}, skipping save.")
+            return
+
     if not os.path.exists("public"):
         os.makedirs("public")
 
     df = pd.DataFrame(courses)
     df = df[CSV_COLUMNS]
-    filepath = os.path.join("public", filename)
     df.to_csv(filepath, index=False, encoding="utf-8-sig")
     print(f"Saved: {filepath} ({len(df)} rows)")
 
