@@ -97,7 +97,7 @@ const ScheduleViewer: React.FC<ScheduleViewerProps> = ({ schedule, scheduleId })
                 {daysOfWeek.map(day => (
                   <td key={day} className="px-2 py-2 align-top">
                     {scheduleData[day][time]?.map((course, index) => (
-                      <div key={index} className={`p-2 rounded-md mb-2 shadow-sm text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 border-l-4 ${course.status === 'متاحه' ? 'border-green-500' : 'border-red-500'}`}>
+                      <div key={index} className={`p-2 rounded-md mb-2 shadow-sm text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 border-l-4 ${course.status === 'متاحه' ? 'border-green-500' : course.status === 'ممتلئة' ? 'border-orange-500' : 'border-red-500'}`}>
                         <p className="font-bold">{course.code} ({course.sectionId})</p>
                         <p>{course.name}</p>
                         <p className="italic text-gray-600 dark:text-gray-400">{course.type}</p>
